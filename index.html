@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari Kode Pos Indonesia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            background: white;
+            width: 100%;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            grid-column: span 3;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .info-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .info-item strong {
+            color: #3498db;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cari Kode Pos Indonesia</h1>
+        
+        <div class="search-box">
+            <select id="provinsi">
+                <option value="">Pilih Provinsi</option>
+            </select>
+            
+            <select id="kabupaten">
+                <option value="">Pilih Kabupaten/Kota</option>
+            </select>
+
+            <select id="kecamatan">
+                <option value="">Pilih Kecamatan</option>
+            </select>
+            
+            <button onclick="cariKodePos()">Cari Kode Pos</button>
+        </div>
+
+        <div class="result" id="result">
+            <h2>Hasil Pencarian</h2>
+            <div class="info-box">
+                <div class="info-item">
+                    <strong>Kode Pos</strong>
+                    <span id="kode-pos">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Provinsi</strong>
+                    <span id="provinsi-result">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Kabupaten/Kota</strong>
+                    <span id="kabupaten-result">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Kecamatan</strong>
+                    <span id="kecamatan-result">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data contoh struktur wilayah Indonesia
+        const dataWilayah = {
+            "Jawa Barat": {
+                "Kota Bandung": {
+                    "Coblong": "40131",
+                    "Sukajadi": "40162",
+                    "Bandung Wetan": "40114"
+                },
+                "Kota Cimahi": {
+                    "Cimahi Selatan": "40531",
+                    "Cimahi Tengah": "40521"
+                }
+            },
+            "DKI Jakarta": {
+                "Jakarta Selatan": {
+                    "Kebayoran Baru": "12120",
+                    "Cilandak": "12430",
+                    "Pasar Minggu": "12520"
+                },
+                "Jakarta Pusat": {
+                    "Gambir": "10110",
+                    "Sawah Besar": "10710"
+                }
+            }
+        };
+
+        // Inisialisasi dropdown provinsi
+        const provinsiSelect = document.getElementById('provinsi');
+        Object.keys(dataWilayah).forEach(provinsi => {
+            provinsiSelect.innerHTML += `<option value="${provinsi}">${provinsi}</option>`;
+        });
+
+        // Update dropdown kabupaten/kota
+        provinsiSelect.addEventListener('change', function() {
+            const kabupatenSelect = document.getElementById('kabupaten');
+            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten/Kota</option>';
+            
+            if (this.value) {
+                Object.keys(dataWilayah[this.value]).forEach(kabupaten => {
+                    kabupatenSelect.innerHTML += `<option value="${kabupaten}">${kabupaten}</option>`;
+                });
+            }
+        });
+
+        // Update dropdown kecamatan
+        document.getElementById('kabupaten').addEventListener('change', function() {
+            const kecamatanSelect = document.getElementById('kecamatan');
+            kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            
+            if (this.value) {
+                const selectedProvinsi = document.getElementById('provinsi').value;
+                Object.keys(dataWilayah[selectedProvinsi][this.value]).forEach(kecamatan => {
+                    kecamatanSelect.innerHTML += `<option value="${kecamatan}">${kecamatan}</option>`;
+                });
+            }
+        });
+
+        // Fungsi pencarian
+        function cariKodePos() {
+            const provinsi = document.getElementById('provinsi').value;
+            const kabupaten = document.getElementById('kabupaten').value;
+            const kecamatan = document.getElementById('kecamatan').value;
+
+            if (!provinsi || !kabupaten || !kecamatan) {
+                alert('Harap lengkapi semua pilihan wilayah!');
+                return;
+            }
+
+            const kodePos = dataWilayah[provinsi][kabupaten][kecamatan];
+            
+            document.getElementById('result').classList.add('active');
+            document.getElementById('kode-pos').textContent = kodePos;
+            document.getElementById('provinsi-result').textContent = provinsi;
+            document.getElementById('kabupaten-result').textContent = kabupaten;
+            document.getElementById('kecamatan-result').textContent = kecamatan;
+        }
+    </script>
+</body>
+</html>
